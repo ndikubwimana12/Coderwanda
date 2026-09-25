@@ -36,7 +36,7 @@ Existing administrator accounts retain full access. Sign in again after upgradin
 For a new installation, register your account through the website, then deliberately promote that account from the server directory:
 
 ```powershell
-npm run admin -- admin@gmail.com
+npm run 
 ```
 
 Sign in again and open `/admin`. Public registration always creates a normal account. Administrators can create/edit/delete users and custom roles, assign full dashboard access, and manage every content module. Built-in role identities remain stable, and the final administrator cannot be removed or demoted.
