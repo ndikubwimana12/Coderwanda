@@ -95,15 +95,9 @@ require('./learning-media').registerMedia(app);
 require('./learning').registerLearning(app);
 require('./practice').registerPractice(app);
 require('./system-routes')(app);
-const dist = path.join(__dirname, '..', 'frontend', 'dist');
-app.use('/api', (_req, res) => res.status(404).json({ error: 'API route not found.' }));
-app.use(express.static(dist));
-app.get('/{*path}', (_req, res) => res.sendFile(path.join(dist, 'index.html')));
-app.use((error, _req, res, _next) => {
-  if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'A record with that email, name or slug already exists.' });
-  if (error.code === 'ER_NO_REFERENCED_ROW_2') return res.status(400).json({ error: 'A referenced user or record does not exist.' });
-  const status = error.status || 500;
-  if (status >= 500) console.error(error);
-  res.status(status).json({ error: status >= 500 ? 'The server could not complete this request. Please try again.' : error.message });
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found.' });
 });
+
 module.exports = app;
