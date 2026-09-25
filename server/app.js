@@ -10,7 +10,24 @@ const { registerManagement, save } = require('./management');
 const { fail, format, validate } = require('./validation');
 const app = express();
 app.disable('x-powered-by');
-app.use(cors({ origin: (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',') }));
+const allowedOrigins = [
+  'https://coderwanda.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '8mb' }));
 app.use((_req, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); next(); });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
