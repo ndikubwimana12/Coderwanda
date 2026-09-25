@@ -1,0 +1,13 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const original = 'server/index.js';
+if (!fs.existsSync('.checks/server-original.js')) throw new Error('Original backend backup is required before switching.');
+fs.writeFileSync(original, "// Application startup is separated from routes so the API can be tested independently.\nrequire('./start');\n");
+const pkg = JSON.parse(fs.readFileSync('server/package.json', 'utf8'));
+pkg.scripts.test = 'node --test integration.test.js';
+pkg.scripts.admin = 'node admin.js';
+fs.writeFileSync('server/package.json', JSON.stringify(pkg, null, 2) + '\n');
+const lock = JSON.parse(fs.readFileSync('server/package-lock.json', 'utf8'));
+lock.packages[''].scripts = undefined;
+fs.writeFileSync('server/package-lock.json', JSON.stringify(lock, null, 2) + '\n');
+console.log('Backend entry point switched to the tested modular application.');

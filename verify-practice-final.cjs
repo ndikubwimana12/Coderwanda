@@ -1,0 +1,9 @@
+const fs=require('node:fs');const path=require('node:path');const backup='.checks/before-final-verification-'+Date.now();
+function edit(file,fn){const old=fs.readFileSync(file,'utf8'),next=fn(old);if(old===next)throw Error('No change '+file);const copy=path.join(backup,file);fs.mkdirSync(path.dirname(copy),{recursive:true});fs.copyFileSync(file,copy);fs.writeFileSync(file,next);}
+edit('server/browser.test.cjs',s=>s.replace("    await until(()=>evaluate(\"document.body.innerText.includes('Draft saved')\"),'automatic draft saving');",String.raw`    await fill('[aria-label="Code editor main.js"]','while (true) {}');await click('Run & test');
+    await until(()=>evaluate("document.body.innerText.includes('Execution stopped after 3 seconds')"),'infinite-loop execution limit');
+    await fill('[aria-label="Code editor main.js"]','function add(a,b) { return a + b; }'+String.fromCharCode(10)+'console.log("Practice works");');await click('Run & test');
+    await until(()=>evaluate("document.body.innerText.includes('Practice works') && !!document.querySelector('.practice-test.pass')"),'runner recovers after timeout');
+    await until(()=>evaluate("document.body.innerText.includes('Draft saved')"),'automatic draft saving');`));
+edit('server/practice.test.js',s=>s.replace("assert.equal((await request(help,'GET',null,outsider.token)).status,403);", "await create('/admin/enrollments',{course_id:course,full_name:'Outsider',email:outsider.user.email,phone:'0780000000',status:'approved'},admin);\n      assert.equal((await request(chat,'GET',null,outsider.token)).status,200);\n      assert.equal((await request(help,'GET',null,outsider.token)).status,403, 'Even another enrolled student cannot access private help');"));
+console.log('Additional timeout and enrolled-student privacy checks prepared.');

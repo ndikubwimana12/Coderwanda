@@ -1,0 +1,2 @@
+import { useNotifications } from '../Utils/notificationStore';
+export default function NotificationBadge({section}){const{sections}=useNotifications();const count=sections[section]||0;return count>0?<span aria-label={`${count} new updates`} className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{count>99?'99+':count}</span>:null;}

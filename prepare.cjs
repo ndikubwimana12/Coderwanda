@@ -1,0 +1,11 @@
+const fs = require('node:fs');
+fs.mkdirSync('.checks', { recursive: true });
+const original = fs.readFileSync('server/index.js', 'utf8');
+fs.writeFileSync('.checks/server-original.js', original);
+let reports = original.slice(original.indexOf('app.get("/api/admin/stats"'), original.indexOf('// Export CSV for any entity'));
+reports = reports.replace(/const trend = dailyActivity\.map\([^\n]+/, 'const trend = dailyActivity.map((r) => Number(r.total_events));');
+fs.writeFileSync('server/reports.js', 'const pool = require("./db");\nmodule.exports = function registerReports(app) {\n' + reports + '\n};\n');
+let schema = fs.readFileSync('server/schema.sql', 'utf8').split('--  SEED: PRODUCTS')[0];
+schema = schema.replace(/CREATE DATABASE[^;]+;/, '').replace(/USE coderwanda;/, '');
+const extended = [...original.slice(original.indexOf('async function initExtendedTables')).matchAll(/await pool.query\(`([\s\S]*?)`\);/g)].map(m => m[1]).filter(s => s.trim().startsWith('CREATE TABLE'));
+fs.writeFileSync('server/base-schema.sql', schema + '\n' + extended.join(';\n') + ';\n');

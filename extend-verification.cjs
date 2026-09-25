@@ -1,0 +1,48 @@
+const fs = require('node:fs');
+const path = require('node:path');
+function edit(file, fn) {
+  const source = fs.readFileSync(file, 'utf8').replaceAll('\r\n', '\n');
+  const backup = path.join('.checks', 'before-browser-final', file); fs.mkdirSync(path.dirname(backup), { recursive: true }); if (!fs.existsSync(backup)) fs.copyFileSync(file, backup);
+  fs.writeFileSync(file, fn(source));
+}
+edit('server/browser.test.cjs', source => {
+  source = source.replace('let created = false, pool, server, chrome, socket;', 'let created = false, pool, server, chrome, socket;\n  let uploadedImage;');
+  source = source.replace("    await click('Save changes');\n    await until", `    const fixture = path.join(checks, 'test-image.png');
+    await fs.writeFile(fixture, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aP1cAAAAASUVORK5CYII=', 'base64'));
+    const root = await cdp('DOM.getDocument');
+    const inputNode = await cdp('DOM.querySelector', { nodeId: root.root.nodeId, selector: 'input[type=file]' });
+    await cdp('DOM.setFileInputFiles', { nodeId: inputNode.nodeId, files: [fixture] });
+    await until(() => evaluate("document.querySelector('#field-image').value.startsWith('/uploads/')"), 'image upload');
+    uploadedImage = await evaluate("document.querySelector('#field-image').value");
+    assert.equal((await fetch(origin + uploadedImage)).status, 200);
+    await click('Save changes');
+    await until`);
+  const start = source.indexOf("    console.log('Enrollment form inputs:'");
+  const end = source.indexOf('\n    for (const [route, expected]', start);
+  source = source.slice(0, start) + `    for (const [name, value] of Object.entries({ fullName: 'Browser Student', email: 'student@example.test', phone: '0780000000', startPeriod: 'This month' })) await fill('[name=' + name + ']', value);
+    await evaluate("document.querySelectorAll('input[type=checkbox]').forEach(input => { if (!input.checked) input.click(); }); document.querySelector('form').requestSubmit()");
+    await until(() => evaluate("document.body.innerText.includes('Application Received')"), 'enrollment submission');
+    await navigate('/careers', 'Browser Job'); await click('View Position'); await click('Apply for this Position');
+    for (const [name, value] of Object.entries({ name: 'Browser Candidate', email: 'candidate@example.test', phone: '0780000000', message: 'Application from browser test' })) await fill('[name=' + name + ']', value);
+    await evaluate("Array.from(document.querySelectorAll('form')).find(form => form.querySelector('[name=name]')).requestSubmit()");
+    await until(() => evaluate("document.body.innerText.includes('Application Submitted')"), 'career application submission');
+    const product = (await json('/products', null, null, 'GET'))[0];
+    await navigate('/ecommerce', 'Browser Product');
+    await evaluate('localStorage.setItem("coderwanda_cart", ' + JSON.stringify(JSON.stringify([{ ...product, price: 1, quantity: 2 }])) + ')');
+    await navigate('/checkout', 'Complete Your Order');
+    assert.ok(await evaluate("document.body.innerText.includes('30,000')"), 'Checkout uses database prices rather than the stale cart price');
+    for (const [name, value] of Object.entries({ phone: '0780000000', address: 'Browser delivery address' })) await fill('[name=' + name + ']', value);
+    await click('Confirm Order');
+    await until(() => evaluate("location.pathname === '/ecommerce' && !localStorage.getItem('coderwanda_cart')"), 'checkout submission');
+    const orders = await json('/admin/orders', null, admin, 'GET'); assert.equal(orders[0].total_amount, 30000);
+    const enrollments = await json('/admin/enrollments', null, admin, 'GET'); assert.equal(enrollments[0].full_name, 'Browser Student');
+    const applications = await json('/admin/applications', null, admin, 'GET'); assert.equal(applications[0].name, 'Browser Candidate');
+    console.log('Image upload, enrollment, career application and checkout browser submissions passed.');
+` + source.slice(end);
+  source = source.replace("    if (pool) await pool.end();", "    if (pool) await pool.end();\n    if (uploadedImage && /^\\/uploads\\/[a-f0-9-]+\\.png$/.test(uploadedImage)) await fs.unlink(path.join(__dirname, uploadedImage.slice(1)));");
+  return source;
+});
+edit('frontend/src/Admin/Pages/AdminDashboard.jsx', source => source.replace('{h}%', '{h} events').replace('background: h > 80', 'background: h === Math.max(...chartData)'));
+edit('frontend/src/Admin/Pages/Analytics.jsx', source => source.replace('.then((r) => setReportData(r.data))', ".then((r) => { setReportData(r.data); setError(''); })"));
+edit('frontend/src/Pages/Ecommerce.jsx', source => source.replace('import { Link }', 'import { Link, useLocation }').replace('export default function Ecommerce() {', 'export default function Ecommerce() {\n    const location = useLocation();').replace('<Navbar />', '<Navbar />\n            {location.state?.orderSuccess && <p role="status" className="bg-emerald-50 p-4 text-center text-emerald-800">Order placed successfully. We will contact you to arrange delivery and payment.</p>}'));
+console.log('Extended real-browser tests and final feedback fixes prepared.');
