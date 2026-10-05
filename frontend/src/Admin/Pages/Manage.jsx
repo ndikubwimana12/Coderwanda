@@ -1,6 +1,7 @@
 import { downloadReport } from '../../Utils/downloadReport';
 import { useState } from 'react';
 import api from '../../Utils/api';
+import { imageUrl } from '../../Utils/imageUrl';
 import useRemote from '../../Utils/useRemote';
 import { contentChanged } from '../../Utils/session';
 import DataState from '../../Components/DataState';
@@ -57,7 +58,7 @@ function Editor({ resource, config, record, onClose, onSaved }) {
           : ['select', 'relation', 'role'].includes(field.type) ? <select id={`field-${key}`} className={inputClass} required={field.required} value={form[key] ?? ''} onChange={event => set(key, event.target.value)}>
             <option value="">Select…</option>{field.type === 'role' ? roles.map(role => <option key={role.id} value={role.name}>{role.name}</option>) : field.type === 'relation' ? (choices[field.resource] || []).map(row => <option key={row.id} value={row.id}>{row.title}</option>) : field.options.map(value => <option key={value} value={value}>{value === '1' ? 'Yes' : value === '0' ? 'No' : value}</option>)}
           </select> : <input id={`field-${key}`} className={inputClass} type={field.type === 'image' ? 'text' : field.type} required={field.required || (key === 'password' && !record)} min={field.min} max={field.max} minLength={field.type === 'password' ? 8 : undefined} value={form[key] ?? ''} onChange={event => set(key, event.target.value)} />}
-        {field.type === 'image' && <div className="mt-2 space-y-2"><input aria-label={`Upload ${field.label}`} type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={event => upload(key, event.target.files[0])} />{form[key] && <img src={form[key]} alt="Preview" className="h-24 max-w-full rounded object-contain" />}<p className="text-xs text-slate-500">Upload an image up to 5 MB, or enter an image URL.</p></div>}
+        {field.type === 'image' && <div className="mt-2 space-y-2"><input aria-label={`Upload ${field.label}`} type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={event => upload(key, event.target.files[0])} />{form[key] && <img src={imageUrl(form[key])} alt="Preview" className="h-24 max-w-full rounded object-contain" />}<p className="text-xs text-slate-500">Upload an image up to 5 MB, or enter an image URL.</p></div>}
       </div>)}
       {error && <p role="alert" className="text-red-700 md:col-span-2">{error}</p>}
       <div className="md:col-span-2"><button disabled={busy || uploading} className="rounded-lg bg-purple-700 px-5 py-2 font-bold text-white disabled:opacity-50">{uploading ? 'Uploading…' : busy ? 'Saving…' : 'Save changes'}</button></div>

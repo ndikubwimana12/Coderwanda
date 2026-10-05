@@ -33,7 +33,33 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '8mb' }));
 app.use((_req, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); next(); });
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadDirectory = path.join(__dirname, 'uploads');
+// Serve generated upload names explicitly. On cPanel/Passenger, Apache may
+// consume static-looking URLs before Express's static middleware gets them.
+// This route keeps image requests inside the Node app and the persistent
+// server/uploads directory used by the upload handler.
+app.get('/uploads/:filename', (req, res, next) => {
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(?:png|jpe?g|webp)$/i.test(req.params.filename)) {
+    return res.sendStatus(404);
+  }
+  res.sendFile(req.params.filename, {
+    root: uploadDirectory,
+    dotfiles: 'deny',
+    headers: { 'Cache-Control': 'public, max-age=86400' }
+  }, error => {
+    if (error && !res.headersSent) next(error);
+  });
+});
+// Fallback for static paths and deployments that normalize the upload prefix.
+app.use(['/uploads', '/uploads/'], express.static(path.join(__dirname, 'uploads'), {
+  fallthrough: true,
+  index: false,
+  dotfiles: 'deny',
+  maxAge: '1d'
+}));
+// Learning media uses signed URLs handled by the API router below; add an
+// explicit route alias so reverse proxies preserve /learning-media paths.
+app.use('/learning-media', (_req, res, next) => next());
 app.use('/api', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
 const attempts = new Map();
 app.use('/api/auth', (req, res, next) => {
@@ -51,6 +77,8 @@ app.post('/api/auth/register', async (req, res) => {
   if (!data.password) fail('Password is required.');
   const [result] = await pool.query('INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)', [data.name, data.email, data.phone, await bcrypt.hash(data.password, 12), 'user']);
   const user = { id: result.insertId, name: data.name, email: data.email, phone: data.phone, role: 'user', admin_access: 0 };
+  await require('./notifications').emit(pool, { actor: user.id, section: '/admin/users', title: 'New user account registered', href: '/admin/users' });
+  await require('./admin-notification-email').enqueueIncoming(pool, 'users', user.id);
   res.status(201).json({ user, token: await issueSession(user.id) });
 });
 app.post('/api/auth/login', async (req, res) => {
@@ -115,6 +143,7 @@ require('./learning-media').registerMedia(app);
 require('./learning').registerLearning(app);
 require('./practice').registerPractice(app);
 require('./system-routes')(app);
+require('./notifications').registerNotifications(app);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'API route not found.' });

@@ -32,6 +32,7 @@ Thumbs.db
 
 # Coverage
 coverage/
+.checks/
 
 # Local database files
 *.sqlite3

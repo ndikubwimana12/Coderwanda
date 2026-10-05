@@ -5,6 +5,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, ShieldCheck, Briefcase, FolderKanban, Package, ShoppingCart, BookOpen, ClipboardList, FileText, MessageSquare, Handshake, Mail, Phone, Newspaper, BarChart2, ScrollText, Settings, Wrench, X, LogOut, ChevronRight } from "lucide-react";
 import logo from "../../assets/CODERWANDA.png";
 import { useAdminTheme } from '../useAdminTheme';
+import NotificationBadge from '../../Components/NotificationBadge';
+import { useNotifications } from '../../Utils/notificationStore';
 
 const NAV = [
   { section: null, items: [{ label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true }] },
@@ -64,6 +66,7 @@ const NAV = [
 export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
   const navigate = useNavigate();
   const { isDark } = useAdminTheme();
+  const notifications = useNotifications();
   const user = (getUser() || {});
 
   const handleLogout = async () => {
@@ -156,6 +159,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
                             className={isActive ? (isDark ? "text-purple-400" : "text-purple-600") : "text-slate-400 group-hover:text-slate-600"}
                           />
                           <span className="flex-1">{item.label}</span>
+                          {notifications.sections[item.to] > 0 && <NotificationBadge section={item.to} />}
                           {isActive && <ChevronRight size={12} className={isDark ? "text-purple-400" : "text-purple-600"} />}
                         </>
                       )}

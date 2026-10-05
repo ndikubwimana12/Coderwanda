@@ -6,6 +6,8 @@ const port = process.env.PORT || 5000;
 migrate().then(() => {
   const notificationTimer = setInterval(() => require('./learning-accounts').deliverNotifications().catch(() => {}), 60000);
   notificationTimer.unref();
+  const adminEmailTimer = setInterval(() => require('./admin-notification-email').deliverPending().catch(error => console.error('Admin notification email delivery failed:', error.message)), 60000);
+  adminEmailTimer.unref();
   const server = app.listen(port, () => console.log(`CodeRwanda API listening on http://localhost:${port}`));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close(() => pool.end().then(() => process.exit(0))));
 }).catch(error => { console.error('Database initialization failed:', error.message); pool.end().finally(() => process.exit(1)); });

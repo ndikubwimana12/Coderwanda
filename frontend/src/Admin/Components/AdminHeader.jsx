@@ -3,6 +3,7 @@ import useRemote from '../../Utils/useRemote';
 import { Menu, Search, RefreshCw, Sun, Moon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAdminTheme } from '../useAdminTheme';
+import NotificationBell from '../../Components/NotificationBell';
 
 const titles = {
   "/admin/practice": "Practicals & Classroom",
@@ -80,6 +81,7 @@ export default function AdminHeader({ onMenuClick }) {
         </form>
 
         <div className="ml-auto flex items-center gap-2">
+          <NotificationBell />
 
           {/* Theme Toggle Button */}
           <button

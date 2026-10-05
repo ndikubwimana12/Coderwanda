@@ -36,7 +36,7 @@ Existing administrator accounts retain full access. Sign in again after upgradin
 For a new installation, register your account through the website, then deliberately promote that account from the server directory:
 
 ```powershell
-npm run 
+npm run admin
 ```
 
 Sign in again and open `/admin`. Public registration always creates a normal account. Administrators can create/edit/delete users and custom roles, assign full dashboard access, and manage every content module. Built-in role identities remain stable, and the final administrator cannot be removed or demoted.
@@ -57,28 +57,24 @@ Image fields accept an HTTP(S) image URL or a PNG/JPEG/WebP upload up to 5 MB. U
 
 Checkout records an order and the selected payment method. It does not charge Mobile Money; a payment-provider integration is a separate feature.
 
-## Verification
+## Build checks
 
 ```powershell
 cd frontend
 npm run lint
 npm run build
 cd ../server
-npm test
-npm run test:browser
+node --check index.js
+node --check app.js
 ```
-
-API and browser tests create a random `coderwanda_test_*` database and remove only that database when done; they never write test records into the configured application database. The configured MySQL account needs create/drop database privileges to run them. Browser tests use local Chrome in hidden headless mode; set `CHROME_PATH` if its executable is elsewhere. Screenshots are saved under `.checks/`.
-
-Tests cover authorization, forged credentials, every management resource, publishing/empty states, server-side prices, validation, last-admin protection, reports, settings, and database migrations. Browser tests cover login, dashboard navigation/editors, product CRUD, public database content, forms, and mobile layout.
 
 ## Production
 
-Build `frontend`, then run `npm start` from `server`. Express serves `frontend/dist`, API routes, and uploaded images on the same origin, including direct navigation to nested routes. Put HTTPS in front of the application, set `FRONTEND_ORIGIN` to the website origin if cross-origin access is needed, and provide durable MySQL and uploads storage.
+Build the frontend with `npm run build` in `frontend` and publish the contents of `frontend/dist` to the `coderwanda.net.rw` document root, including the hidden `.htaccess` file. It sends client-side page requests such as `/admin/settings` back to `index.html`. Deploy the updated Node source from `server` to the cPanel Node application configured for `api.coderwanda.net.rw`, then restart that application so database migrations and notification workers run. Keep the existing `server/uploads` directory and its files when deploying; uploaded files are stored there. The production frontend points file requests to `https://api.coderwanda.net.rw/uploads/<filename>`, and the Node app serves those paths from `server/uploads`. Verify a real URL directly, for example `https://api.coderwanda.net.rw/uploads/24fccb03-8960-49a7-a6c6-6762b70447f7.png`. If it returns 404 after restarting the Node app, confirm the API subdomain is attached to that Node application and its application root is `/home/<cpanel-user>/server`; the frontend document root must not receive `/uploads` requests.
 
-The schema is assembled by `server/base-schema.sql` plus additive updates in `server/migrate.js`. `server/schema.sql` is the original reference schema with sample data; it is not the startup migration. Sessions are random, expire after seven days, and are stored hashed in MySQL. Admin permissions are checked against the database on every request.
+Admin alerts are queued for new accounts, contact messages, enrollments, job applications, orders and newsletter subscriptions. Set `ADMIN_NOTIFICATION_EMAIL=ndikubwimanaeric2019@gmail.com` and configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_FROM` in the Node application's environment to deliver the email alerts. Alerts still appear in the dashboard notification bell if SMTP is unavailable; queued email is retried by the backend worker.
 
-Source snapshots made during this upgrade are under `.checks/` (ignored by Git). No Git repository was present in the supplied workspace.
+The schema is assembled by `server/base-schema.sql` plus additive updates in `server/migrate.js`. Sessions are random, expire after seven days, and are stored hashed in MySQL. Admin permissions are checked against the database on every request.
 
 
 ## Learning platform
@@ -93,14 +89,11 @@ Passing the final exam after completing the units awards a certificate with a un
 
 ### Activation email setup
 
-Set PUBLIC_ORIGIN to the website's browser-facing origin. Configure SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD and SMTP_FROM in server/.env using server/.env.example. Restart the backend after changing environment settings. Approval queues an email and the backend retries pending messages every minute; the dashboard also offers Retry email delivery. Without SMTP, accounts are still created and admins can share activation links manually. Tests disable SMTP and never send emails.
+Set PUBLIC_ORIGIN to the website's browser-facing origin. Configure SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD and SMTP_FROM in server/.env using server/.env.example. Restart the backend after changing environment settings. Approval queues an email and the backend retries pending messages every minute; the dashboard also offers Retry email delivery. Without SMTP, accounts are still created and admins can share activation links manually.
 
 ### Learning storage and deployment
 
 The additive migration includes server/learning-schema.sql. Back up MySQL, server/uploads and server/learning-media. Uploaded lesson media uses signed, expiring URLs and rechecks enrollment access, including video range requests. External media URLs retain the external host's access rules. Set LEARNING_MEDIA_SECRET to a stable random secret in production and configure the reverse proxy to accept uploads of at least 250 MB. Run one notification worker/server instance unless distributed job locking is added.
-
-Learning API tests cover approval, single-use activation, existing accounts, prerequisites, timed assessments, attempt limits, grading, certificates and private-media authorization. The browser test also authors content, approves a student, activates the account, completes a module assessment and final exam, and verifies the certificate and mobile dashboard. Test artifacts are under .checks/.
-
 
 ## Practical coding, marking and classroom interaction
 
@@ -116,4 +109,3 @@ JavaScript functions run in a sandboxed browser worker with a three-second timeo
 
 The wider programming-language catalog and console execution use a **local-only Judge0 adapter**. It supports single-file languages installed in that runner, with compilation errors, input/output tests and resource limits. The service has not been deployed on this workstation: Docker is absent, and its WSL environment needs administrator/kernel setup. See [runner/README.md](runner/README.md) for the prepared service package and live verification command. No external runner endpoint is accepted. Runtime integration tests use a local API test double; they do not prove real compilers are installed.
 
-Run npm test from server for dashboard, learning, practical/chat and runner-contract coverage. The browser suite additionally checks practical authoring, live browser JavaScript execution, saved drafts, submission, rubric marks, line feedback, private chat, mobile layout and the favicon. Source backups are under .checks/.

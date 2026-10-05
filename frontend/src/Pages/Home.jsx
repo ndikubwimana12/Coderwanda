@@ -2,6 +2,7 @@ import PublicContent from '../Components/PublicContent';
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
 import { Link } from "react-router-dom";
+import { imageUrl } from '../Utils/imageUrl';
 
 import bgImage from "../assets/bgImage.png";
 import heroImage from "../assets/bgImage.png";
@@ -390,7 +391,7 @@ export default function Home() {
                             <div className="h-36 overflow-hidden">
 
                                 <img loading="lazy" decoding="async"
-                                    src={service.image}
+                                    src={imageUrl(service.image)}
                                     alt={service.title}
                                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                     onError={e => { e.target.src = I1; }}
@@ -463,7 +464,7 @@ export default function Home() {
                                 <div className="flex h-40 items-center justify-center overflow-hidden bg-white p-3">
 
                                     <img loading="lazy" decoding="async"
-                                        src={product.image}
+                                        src={imageUrl(product.image)}
                                         alt={product.name}
                                         className="h-full w-full object-contain transition duration-500 group-hover:scale-105"
                                         onError={e => { e.target.src = I2; }}
@@ -539,7 +540,7 @@ export default function Home() {
                             <div className="h-36 overflow-hidden">
 
                                 <img loading="lazy" decoding="async"
-                                    src={course.image}
+                                    src={imageUrl(course.image)}
                                     alt={course.title}
                                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                     onError={e => { e.target.src = [c1,c2,c3,c4,c5][i % 5]; }}

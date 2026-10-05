@@ -13,7 +13,29 @@
  * prefixed with the correct API base URL.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const hostedApiOrigin = typeof window !== 'undefined' &&
+  ['coderwanda.net.rw', 'www.coderwanda.net.rw'].includes(window.location.hostname)
+  ? 'https://api.coderwanda.net.rw'
+  : '';
+const API_BASE = configuredApiUrl.startsWith('/')
+  ? hostedApiOrigin
+  : (configuredApiUrl || hostedApiOrigin).replace(/\/api$/i, '');
+
+// When the frontend and Node app share a Namecheap domain, Apache may serve
+// the files directly from the account's server/uploads folder. This override
+// is optional; set VITE_UPLOADS_URL to the public URL mapped to that folder.
+const UPLOADS_BASE = (import.meta.env.VITE_UPLOADS_URL || API_BASE).replace(/\/$/, '');
+const uploadedFilename = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(?:png|jpe?g|webp)$/i;
+
+function uploadedPath(pathname) {
+  const normalized = pathname.replace(/\\/g, '/');
+  const name = normalized.split('/').pop();
+  if (!uploadedFilename.test(name || '')) return null;
+  // Older admin records may contain only the generated filename, or a path
+  // relative to the project root, instead of the canonical /uploads URL.
+  return `/uploads/${name}`;
+}
 
 /**
  * Returns a fully-qualified image URL.
@@ -27,13 +49,34 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
  */
 export function imageUrl(value) {
   if (!value) return '';
-  // Already absolute — trust it.
-  if (/^https?:\/\//i.test(value)) return value;
-  // Relative server-side upload path — prepend the API origin.
-  if (value.startsWith('/uploads/') || value.startsWith('/learning-media/')) {
-    return `${API_BASE}${value}`;
+  const path = value.trim();
+  if (!path) return '';
+
+  // Uploads stored by older deployments may be absolute URLs pointing to an
+  // API hostname that has since changed. Use the configured API origin when
+  // available, otherwise keep the absolute URL as supplied.
+  if (/^https?:\/\//i.test(path)) {
+    try {
+      const url = new URL(path);
+      // Signed learning URLs include an API route and query-string grant;
+      // keep them pointed at the API and preserve the signature byte for byte.
+      if (url.pathname.startsWith('/api/learning/media/') || url.pathname.startsWith('/learning-media/')) return path;
+      const uploadPath = url.pathname.startsWith('/uploads/') ? url.pathname : uploadedPath(url.pathname);
+      if (uploadPath) return `${UPLOADS_BASE}${uploadPath}${url.search}${url.hash}`;
+    } catch {
+      return path;
+    }
+    return path;
   }
-  return value;
+
+  // Relative server-side paths belong to the API when it has its own origin.
+  if (path.startsWith('/api/learning/media/')) return `${API_BASE}${path}`;
+  if (path.startsWith('/learning-media/')) return `${API_BASE}${path}`;
+  const uploadPath = path.startsWith('/uploads/')
+    ? path
+    : uploadedPath(path.replace(/^\.\//, ''));
+  if (uploadPath) return `${UPLOADS_BASE}${uploadPath}`;
+  return path;
 }
 
 export default imageUrl;

@@ -1,5 +1,6 @@
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
+import { imageUrl } from '../Utils/imageUrl';
 import { Link, useParams } from "react-router-dom";
 
 
@@ -217,7 +218,7 @@ export default function CourseDetails() {
                             <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-2 shadow-2xl">
 
                                 <img loading="lazy" decoding="async"
-                                    src={course.image}
+                                    src={imageUrl(course.image)}
                                     alt={course.title}
                                     className="h-[350px] w-full rounded-2xl object-cover sm:h-[430px]"
                                 />

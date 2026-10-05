@@ -20,6 +20,11 @@ function validate(resource, body, editing = false) {
     } else {
       if (typeof value !== 'string' && typeof value !== 'number') fail(`${field.label} must be text.`);
       value = field.type === 'password' ? String(value) : String(value).trim();
+      if (field.type === 'image' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(?:png|jpe?g|webp)$/i.test(value)) {
+        // Canonicalize filenames saved by older deployments that omitted the
+        // /uploads/ prefix so they remain editable and portable.
+        value = `/uploads/${value}`;
+      }
       if (field.required && !value) fail(`${field.label} is required.`);
       if (value.length > (['textarea', 'image'].includes(field.type) ? 60000 : 200)) fail(`${field.label} is too long.`);
       if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) fail('Enter a valid email address.');

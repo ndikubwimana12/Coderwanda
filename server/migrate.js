@@ -21,6 +21,10 @@ async function migrate() {
   for (const statement of learningSQL.split(';').map(value => value.trim()).filter(Boolean)) await pool.query(statement);
   const practiceSQL = await fs.readFile(path.join(__dirname, 'practice-schema.sql'), 'utf8');
   for (const statement of practiceSQL.split(';').map(value => value.trim()).filter(Boolean)) await pool.query(statement);
+  for (const schemaFile of ['notifications-schema.sql', 'admin-notification-email-schema.sql']) {
+    const schema = await fs.readFile(path.join(__dirname, schemaFile), 'utf8');
+    for (const statement of schema.split(';').map(value => value.trim()).filter(Boolean)) await pool.query(statement);
+  }
   const [practiceColumns] = await pool.query('SHOW COLUMNS FROM coding_exercises');
   if (practiceColumns.find(column => column.Field === 'language').Type.startsWith('enum')) await pool.query('ALTER TABLE coding_exercises MODIFY language VARCHAR(40) NOT NULL');
   if (!practiceColumns.some(column => column.Field === 'language_name')) await pool.query('ALTER TABLE coding_exercises ADD COLUMN language_name VARCHAR(160) NULL');

@@ -664,7 +664,7 @@ export default function Ecommerce() {
                             <div className="h-28 overflow-hidden bg-slate-50 sm:h-36">
 
                                 <img
-                                    src={category.image}
+                                    src={imageUrl(category.image)}
                                     alt={category.name}
                                     loading="lazy"
                                     className="

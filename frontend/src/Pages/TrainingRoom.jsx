@@ -1,5 +1,6 @@
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
+import { imageUrl } from '../Utils/imageUrl';
 import { Link } from "react-router-dom";
 
 
@@ -192,7 +193,7 @@ export default function TrainingRoom() {
                                 >
                                     <div className="relative h-56 overflow-hidden">
                                         <img loading="lazy" decoding="async"
-                                            src={course.image}
+                                            src={imageUrl(course.image)}
                                             alt={course.title}
                                             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                         />

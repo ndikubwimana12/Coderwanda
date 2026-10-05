@@ -5,6 +5,12 @@ const { fail, positiveId, validate, format } = require('./validation');
 
 async function audit(conn, user, action, resource, id) {
   await conn.query('INSERT INTO activity_logs (user_id, actor, action, resource, record_id) VALUES (?, ?, ?, ?, ?)', [user?.id || null, user?.email || 'Public visitor', action, resource, id || null]);
+  const inbound = ['contacts', 'enrollments', 'applications', 'orders', 'subscribers'];
+  if (action === 'create' && inbound.includes(resource) && !user?.admin_access) {
+    const sections = { contacts: '/admin/contacts', enrollments: '/admin/students', applications: '/admin/applications', orders: '/admin/orders', subscribers: '/admin/subscribers' };
+    await require('./notifications').emit(conn, { actor: user?.id || null, section: sections[resource], title: `New ${resource.replaceAll('_', ' ')} received`, href: sections[resource] });
+    await require('./admin-notification-email').enqueueIncoming(conn, resource, id);
+  }
 }
 async function list(resource, id) {
   const config = resources[resource];

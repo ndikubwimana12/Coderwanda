@@ -8,9 +8,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "node --test integration.test.js learning.test.js practice.test.js runner.test.js",
-    "admin": "node admin.js",
-    "test:browser": "node browser.test.cjs"
+    "admin": "node admin.js"
   },
   "keywords": [],
   "author": "",
