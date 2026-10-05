@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { imageUrl } from "../Utils/imageUrl";
 import { Link, useNavigate } from "react-router-dom";
 import {
     ShoppingBag,
@@ -214,7 +215,7 @@ export default function Cart() {
                                             >
 
                                                 <img
-                                                    src={item.image}
+                                                    src={imageUrl(item.image)}
                                                     alt={item.name}
                                                     className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
                                                 />

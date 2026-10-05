@@ -10,7 +10,10 @@ const { registerManagement, save } = require('./management');
 const { fail, format, validate } = require('./validation');
 const app = express();
 app.disable('x-powered-by');
+
 const allowedOrigins = [
+  'https://coderwanda.net.rw',
+  'https://www.coderwanda.net.rw',
   'https://coderwanda.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',

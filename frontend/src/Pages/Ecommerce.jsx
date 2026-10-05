@@ -1,7 +1,7 @@
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
 import { useMemo, useState } from "react";
-
+import { imageUrl } from '../Utils/imageUrl';
 
 import { Link, useLocation } from "react-router-dom";
 
@@ -548,7 +548,7 @@ export default function Ecommerce() {
                                 <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] p-3 shadow-2xl backdrop-blur">
                                     <div className="overflow-hidden rounded-2xl">
                                         <img
-                                            src={productList[0].image}
+                                            src={imageUrl(productList[0].image)}
                                             alt={productList[0].name}
                                             className="h-74 w-full object-cover"
                                         />
@@ -579,7 +579,7 @@ export default function Ecommerce() {
                                 {/* Floating mini card — second product */}
                                 <div className="absolute -bottom-4 -left-10 w-36 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.08] p-2 shadow-xl backdrop-blur">
                                     <img
-                                        src={(productList[1] || productList[0]).image}
+                                        src={imageUrl((productList[1] || productList[0]).image)}
                                         alt={(productList[1] || productList[0]).name}
                                         className="h-24 w-full rounded-xl object-cover"
                                     />
@@ -1181,7 +1181,7 @@ function ProductCard({
                 <div className="relative aspect-square">
 
                     <img loading="lazy" decoding="async"
-                        src={product.image}
+                        src={imageUrl(product.image)}
                         alt={product.name}
                         loading="lazy"
                         className="

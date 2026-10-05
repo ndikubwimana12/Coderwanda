@@ -1,5 +1,6 @@
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
+import { imageUrl } from '../Utils/imageUrl';
 import { getUser } from '../Utils/session';
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -248,7 +249,7 @@ export default function Checkout() {
                                 <div key={item.id} className="flex gap-3">
                                     <div className="h-16 w-16 rounded-lg bg-slate-50 p-2">
                                         <img
-                                            src={item.image}
+                                            src={imageUrl(item.image)}
                                             alt={item.name}
                                             className="h-full w-full object-contain"
                                         />

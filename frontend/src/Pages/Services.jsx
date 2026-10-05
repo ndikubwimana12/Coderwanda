@@ -1,7 +1,7 @@
 import useRemote from '../Utils/useRemote';
 import DataState from '../Components/DataState';
 import { useEffect, useMemo, useState } from 'react'
-
+import { imageUrl } from '../Utils/imageUrl'
 import { Link } from 'react-router-dom'
 import Navbar from '../Components/Navbar'
 import service from '../assets/service.png'
@@ -643,7 +643,7 @@ export default function Services() {
                         <div className="relative h-52 sm:h-64">
 
                             <img
-                                src={selectedService.image}
+                                src={imageUrl(selectedService.image)}
                                 alt={selectedService.title}
                                 className="h-full w-full object-cover"
                             />
@@ -831,7 +831,7 @@ function ServiceCard({ service, onExplore }) {
             <div className="relative h-48 overflow-hidden">
 
                 <img loading="lazy" decoding="async"
-                    src={service.image}
+                    src={imageUrl(service.image)}
                     alt={service.title}
                     loading="lazy"
                     className="

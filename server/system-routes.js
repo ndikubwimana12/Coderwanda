@@ -46,6 +46,9 @@ module.exports = app => {
     await fs.mkdir(path.join(__dirname, 'uploads'), { recursive: true });
     await fs.writeFile(path.join(__dirname, 'uploads', filename), buffer, { flag: 'wx' });
     await audit(pool, req.user, 'upload', 'images', null);
-    res.status(201).json({ url: `/uploads/${filename}` });
+    // Return an absolute URL so it loads correctly from any frontend domain
+    const origin = process.env.API_BASE_URL ||
+      `${req.protocol}://${req.get('host')}`;
+    res.status(201).json({ url: `${origin}/uploads/${filename}` });
   });
 };

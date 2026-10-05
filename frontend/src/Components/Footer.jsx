@@ -224,12 +224,6 @@ export default function Footer() {
             © {new Date().getFullYear()} {settings.data?.site_name || 'CodeRwanda'}. All rights reserved.
           </p>
 
-          <p className="flex items-center gap-1.5">
-            Made with
-            <i className="fa-solid fa-heart text-[10px] text-red-500" />
-            in Rwanda 🇷🇼
-          </p>
-
         </div>
 
       </div>
